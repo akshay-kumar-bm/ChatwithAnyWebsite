@@ -22,6 +22,7 @@ from functools import reduce
 from dataclasses import dataclass
 from typing import Optional
 from langchain_core.documents.base import Document
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -29,6 +30,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MODEL = os.getenv("MODEL")
 
 app = Flask(__name__)
+CORS(app)
 
 # Initialize LLM and embeddings
 llm = ChatGoogleGenerativeAI(model=MODEL)
