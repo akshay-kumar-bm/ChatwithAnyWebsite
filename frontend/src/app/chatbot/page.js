@@ -35,67 +35,98 @@ export default function ChatbotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
       
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="bg-blue-600 p-4 text-white">
-            <h1 className="text-xl font-semibold">AI Support Assistant</h1>
-            <p className="text-sm opacity-90">Ask anything about your website or business</p>
-          </div>
-
-          <div className="h-[600px] overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto p-6">
+        <div className="bg-blue-600 rounded-t-lg p-4 text-white">
+          <h1 className="text-xl font-medium">AI Support Assistant</h1>
+          <p className="text-sm text-blue-100">Ask anything about your website or business</p>
+        </div>
+        
+        <div className="bg-white rounded-b-lg shadow-sm flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 p-6 overflow-y-auto">
             {messages.length === 0 && (
-              <div className="text-center text-gray-500 my-8">
-                <p>👋 Hello! How can I help you today?</p>
+              <div className="flex items-start mb-6 bg-blue-50 p-4 rounded-lg">
+                <div className="flex-shrink-0 mr-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                    🤖
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium">Hello! How can I help you today?</p>
+                  <p className="text-sm text-gray-600 mt-1">Ask me about your menu, business hours, or special offers.</p>
+                </div>
               </div>
             )}
             
             {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`rounded-lg p-4 max-w-[80%] ${
-                  msg.type === 'user' 
-                    ? 'bg-blue-600 text-white' 
-                    : msg.type === 'error'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100'
-                }`}>
+              <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+                {msg.type !== 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-3 mt-1">
+                    {msg.type === 'error' ? '!' : '🤖'}
+                  </div>
+                )}
+                <div 
+                  className={`p-3 rounded-lg max-w-xs sm:max-w-md ${
+                    msg.type === 'user' 
+                      ? 'bg-blue-600 text-white ml-3' 
+                      : msg.type === 'error'
+                        ? 'bg-red-50 text-red-700 border border-red-200' 
+                        : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
                   {msg.content}
                 </div>
               </div>
             ))}
             
             {loading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg p-4">
-                  Typing...
+              <div className="flex justify-start mb-4">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-3 mt-1">
+                  🤖
+                </div>
+                <div className="bg-gray-100 text-gray-800 p-3 rounded-lg inline-flex space-x-1 items-center">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                 </div>
               </div>
             )}
           </div>
-
-          <div className="border-t p-4 bg-white">
-            <form onSubmit={handleSubmit} className="flex gap-4">
+          
+          <div className="p-4 border-t border-gray-100">
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 p-4 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 placeholder="Type your message..."
                 disabled={loading}
               />
               <button
                 type="submit"
-                disabled={loading}
-                className="px-6 py-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50"
+                disabled={loading || !query.trim()}
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 px-5 font-medium transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Sending...' : 'Send'}
+                {loading ? 'Sending...' : (
+                  <>
+                    Send
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </>
+                )}
               </button>
             </form>
           </div>
         </div>
-      </main>
+        
+        <div className="text-xs text-center text-gray-500 mt-2">
+          Powered by AI • Your Restaurant/E-Commerce Assistant
+        </div>
+      </div>
     </div>
   );
 }

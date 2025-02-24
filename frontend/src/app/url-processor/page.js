@@ -17,11 +17,13 @@ const DraggableUrlItem = ({ url, index, type, moveUrl }) => {
   return (
     <li
       ref={drag}
-      className={`flex items-center space-x-2 p-2 rounded-lg cursor-move ${
-        isDragging ? 'opacity-50 bg-gray-100' : ''
+      className={`flex items-center p-3 mb-2 rounded-lg cursor-move transition-all ${
+        isDragging ? 'opacity-50 bg-gray-100' : 'hover:bg-gray-50'
       }`}
     >
-      <span className="text-blue-600">•</span>
+      <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mr-3 text-xs">
+        ≡
+      </div>
       <a
         href={url}
         target="_blank"
@@ -56,23 +58,23 @@ const DroppableUrlList = ({
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-xl font-normal text-gray-900">
           {type === 'desc' ? 'Description URLs' : 'Product/Service URLs'}
         </h3>
         <button
           onClick={() => onProcess(type)}
           disabled={processing || !urls.length}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           {processing ? 'Processing...' : 'Process URLs'}
         </button>
       </div>
       {processStatus && (
         <div
-          className={`p-3 rounded-lg mb-4 ${
+          className={`p-4 rounded-lg mb-4 ${
             processStatus.startsWith('Error')
-              ? 'bg-red-50 text-red-700'
-              : 'bg-green-50 text-green-700'
+              ? 'bg-red-50 text-red-700 border border-red-100'
+              : 'bg-green-50 text-green-700 border border-green-100'
           }`}
         >
           {processStatus}
@@ -80,14 +82,17 @@ const DroppableUrlList = ({
       )}
       <div
         ref={drop}
-        className={`border-2 rounded-lg p-2 min-h-32 ${
-          isOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
+        className={`border rounded-xl p-4 min-h-48 transition-all ${
+          isOver ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
         }`}
       >
         {urls.length === 0 ? (
-          <p className="text-gray-400 text-center py-4">Drop URLs here</p>
+          <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+            <div className="text-3xl mb-2">⟱</div>
+            <p>Drop URLs here</p>
+          </div>
         ) : (
-          <ul className="space-y-2">{children}</ul>
+          <ul className="space-y-1">{children}</ul>
         )}
       </div>
     </div>
@@ -194,44 +199,56 @@ export default function UrlProcessorPage() {
       <div className="min-h-screen bg-gray-50">
         <Header />
 
-        <main className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[calc(100vh-160px)]">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="mb-8">
+            <h1 className="text-3xl font-normal text-gray-900 mb-2">Website Analysis</h1>
+            <p className="text-gray-600">Analyze your website content to build a custom AI knowledge base</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[calc(100vh-240px)]">
             {/* Input Form */}
             <div className="lg:col-span-1">
-              <div className="bg-white p-6 rounded-lg shadow-lg sticky top-24">
-                <h2 className="text-2xl font-bold mb-6">Website Analysis</h2>
-                <p className="text-gray-600 mb-6">
-                  Enter your website URL below to analyze its content and
-                  structure using our AI.
-                </p>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <input
-                    type="url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://your-website.com"
-                    required
-                  />
+              <div className="bg-white p-8 rounded-xl shadow-sm sticky top-24">
+                <h2 className="text-xl font-medium mb-6">Enter Website URL</h2>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label htmlFor="website-url" className="block text-sm font-medium text-gray-700 mb-2">
+                      Website URL
+                    </label>
+                    <input
+                      id="website-url"
+                      type="url"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="https://your-website.com"
+                      required
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
                     {loading ? 'Analyzing...' : 'Analyze Website'}
                   </button>
                 </form>
 
                 {classification && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h3 className="font-medium text-blue-800 mb-2">
+                  <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-100">
+                    <h3 className="font-medium text-blue-800 mb-3">
                       Drag & Drop Instructions
                     </h3>
-                    <p className="text-sm text-blue-600">
-                      You can drag URLs between the Description and
-                      Product/Service sections. Click and hold to drag, then
-                      release to drop.
-                    </p>
+                    <ul className="text-sm text-blue-700 space-y-2">
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Drag URLs between the two sections to recategorize them</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Process each section individually by clicking the "Process URLs" button</span>
+                      </li>
+                    </ul>
                   </div>
                 )}
               </div>
@@ -240,13 +257,13 @@ export default function UrlProcessorPage() {
             {/* Results Display */}
             <div className="lg:col-span-2">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-6">
                   <p className="text-red-700">{error}</p>
                 </div>
               )}
 
-              {classification && (
-                <div className="bg-white rounded-lg shadow-lg divide-y">
+              {classification ? (
+                <div className="bg-white rounded-xl shadow-sm divide-y">
                   {/* Description URLs Section */}
                   <DroppableUrlList
                     type="desc"
@@ -286,6 +303,14 @@ export default function UrlProcessorPage() {
                       />
                     ))}
                   </DroppableUrlList>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm p-8 flex flex-col items-center justify-center min-h-64">
+                  <div className="text-5xl mb-4">🔍</div>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">No data yet</h3>
+                  <p className="text-gray-600 text-center max-w-md">
+                    Enter your website URL in the form and click "Analyze Website" to start the process.
+                  </p>
                 </div>
               )}
             </div>
