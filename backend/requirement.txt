@@ -1,1 +1,7 @@
 python-dotenv
+pydantic
+flask
+selenium
+flask-cors
+langchain_community
+langchain_google_genai
