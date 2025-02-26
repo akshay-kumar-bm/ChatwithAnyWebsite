@@ -1,6 +1,7 @@
   'use client';
   import Header from './components/Header';
   import Link from 'next/link';
+  import Footer from './components/Footer';
 
   export default function Home() {
     return (
@@ -310,6 +311,7 @@
             </Link>
           </div>
         </div>
+            <Footer />
       </div>
     );
   }
