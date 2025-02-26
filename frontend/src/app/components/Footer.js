@@ -7,12 +7,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col items-center justify-between md:flex-row">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AI</span>
-            </div>
-            <span className="text-xl font-semibold text-gray-900">
-              Web<span className="text-blue-600">AI</span>
-            </span>
+
+        
           </div>
           
           <nav className="flex flex-wrap justify-center gap-6">
