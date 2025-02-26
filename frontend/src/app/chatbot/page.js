@@ -1,37 +1,83 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Header from '../components/Header';
+import ReactMarkdown from 'react-markdown';
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     const userMessage = { type: 'user', content: query };
+    const currentQuery = query; // Store query to use in the API call
+    
+    // Immediately update UI with user message and clear input
     setMessages(prev => [...prev, userMessage]);
+    setQuery('');
     setLoading(true);
 
     try {
       const res = await fetch('http://localhost:5000/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query: currentQuery })
       });
       
       const result = await res.json();
-      const botMessage = { type: 'bot', content: result.response };
+      const botMessage = { type: 'bot', content: result.response, isMarkdown: true };
       setMessages(prev => [...prev, botMessage]);
-      setQuery('');
     } catch (err) {
-      const errorMessage = { type: 'error', content: 'Sorry, there was an error. Please try again.' };
+      console.error('Error calling chatbot API:', err);
+      const errorMessage = { 
+        type: 'error', 
+        content: 'Sorry, there was an error. Please try again.' 
+      };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to render message content with or without markdown
+  const renderMessageContent = (msg) => {
+    if (msg.isMarkdown) {
+      return (
+        <div className="markdown-content">
+          <ReactMarkdown
+            components={{
+              p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
+              code: ({node, inline, ...props}) => 
+                inline ? 
+                  <code className="bg-opacity-5 bg-black px-1 py-0.5 rounded font-mono" {...props} /> :
+                  <code className="block bg-opacity-5 bg-black p-3 rounded font-mono my-2 overflow-x-auto" {...props} />,
+              pre: ({node, ...props}) => <pre className="bg-opacity-5 bg-black p-3 rounded overflow-x-auto my-2" {...props} />,
+              ul: ({node, ...props}) => <ul className="ml-6 mb-3 list-disc" {...props} />,
+              ol: ({node, ...props}) => <ol className="ml-6 mb-3 list-decimal" {...props} />,
+              h1: ({node, ...props}) => <h1 className="text-xl font-semibold mt-4 mb-2" {...props} />,
+              h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-4 mb-2" {...props} />,
+              h3: ({node, ...props}) => <h3 className="text-base font-semibold mt-4 mb-2" {...props} />,
+            }}
+          >
+            {msg.content}
+          </ReactMarkdown>
+        </div>
+      );
+    }
+    return msg.content;
   };
 
   return (
@@ -74,9 +120,9 @@ export default function ChatbotPage() {
                       : msg.type === 'error'
                         ? 'bg-red-50 text-red-700 border border-red-200' 
                         : 'bg-gray-100 text-gray-800'
-                  }`}
+                  } ${msg.isMarkdown ? 'markdown-wrapper' : ''}`}
                 >
-                  {msg.content}
+                  {renderMessageContent(msg)}
                 </div>
               </div>
             ))}
@@ -93,6 +139,8 @@ export default function ChatbotPage() {
                 </div>
               </div>
             )}
+            
+            <div ref={messagesEndRef} />
           </div>
           
           <div className="p-4 border-t border-gray-100">

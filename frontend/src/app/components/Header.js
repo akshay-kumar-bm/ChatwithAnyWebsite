@@ -21,8 +21,9 @@ export default function Header() {
           <nav className="flex items-center">
             {[
               { path: '/url-processor', label: 'Website Analysis' },
+              {path: "/text-processor", label: "Direct Input"},
               { path: '/chatbot', label: 'AI Chat Support' },
-              { path: '/products', label: 'Product Management' }
+              { path: '/products', label: 'Product Management' },
             ].map((link) => (
               <Link
                 key={link.path}

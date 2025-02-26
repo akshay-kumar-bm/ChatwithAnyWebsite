@@ -87,7 +87,7 @@
                 <div className="text-gray-500 text-sm mt-2">Compared to human agents</div>
               </div>
               <div className="p-4 rounded-lg bg-gray-50">
-                <div className="text-3xl font-bold text-blue-600"> 1s</div>
+                <div className="text-3xl font-bold text-blue-600"> less then3s</div>
                 <div className="text-gray-700">Response Time</div>
                 <div className="text-gray-500 text-sm mt-2">Instant customer service</div>
               </div>

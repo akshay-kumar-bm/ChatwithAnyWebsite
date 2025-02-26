@@ -23,6 +23,9 @@ from dataclasses import dataclass
 from typing import Optional
 from langchain_core.documents.base import Document
 from flask_cors import CORS
+from flask import Flask, request, jsonify
+from langchain_core.documents.base import Document
+from typing import Optional
 
 # Load environment variables
 load_dotenv()
@@ -198,7 +201,97 @@ def process_product_urls():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/process-desc-text', methods=['POST'])
+def process_desc_text():
+    try:
+        data = request.get_json()
+        text = data.get('text', '')
+        
+        if not text or len(text.strip()) < 50:
+            return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
+            
+        # Create a Document from the text
+        doc = Document(
+            page_content=text,
+            metadata={"type": "description", "source": "direct_input"}
+        )
+        
+        # Split the document
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        split_docs = splitter.split_documents([doc])
+        
+        # Create and save vector store
+        desc_vectorstore = FAISS.from_documents(
+            documents=split_docs,
+            embedding=embeddings
+        )
+        desc_vectorstore.save_local("vectors/description_index")
+        
+        return jsonify({'message': 'Description text processed successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
+@app.route('/process-product-text', methods=['POST'])
+def process_product_text():
+    try:
+        data = request.get_json()
+        text = data.get('text', '')
+        
+        if not text or len(text.strip()) < 50:
+            return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
+            
+        # Create a Document from the text
+        doc = Document(
+            page_content=text,
+            metadata={"type": "product", "source": "direct_input"}
+        )
+        
+        # Split the document
+        splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+        split_docs = splitter.split_documents([doc])
+        
+        # Extract product information using the LLM
+        product_info = []
+        for doc in split_docs[:3]:  # Limit to first 3 chunks to avoid timeouts
+            product_info.append(prod_format_llm.invoke(doc.page_content))
+            
+        # Combine results
+        if product_info:
+            result = reduce(lambda x, y: List_product(products=x.products + y.products), product_info)
+            
+            # Store in vector store
+            product_docs = [Document(
+                page_content=str(dict(prod)),
+                metadata={"type": "product", "source": "direct_input"}
+            ) for prod in result.products]
+            
+            try:
+                # Try to load existing vector store
+                product_vectorstore = FAISS.load_local(
+                    "vectors/product_info_index", 
+                    embeddings,
+                    allow_dangerous_deserialization=True
+                )
+                # Add new documents
+                product_vectorstore.add_documents(product_docs)
+            except Exception:
+                # If loading fails, create new vector store
+                product_vectorstore = FAISS.from_documents(
+                    documents=product_docs,
+                    embedding=embeddings
+                )
+                
+            # Save vector store
+            product_vectorstore.save_local("vectors/product_info_index")
+            
+            return jsonify({
+                'message': 'Product text processed successfully',
+                'products': [dict(prod) for prod in result.products]
+            })
+        else:
+            return jsonify({'error': 'No product information could be extracted'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 # def initialize_vector_store(store_name: str):
 #     """Initialize vector store if it doesn't exist"""
 #     store_path = f"vectors/{store_name}"
