@@ -21,6 +21,12 @@ export default function Footer() {
             <Link href="/text-processor" className="text-gray-600 hover:text-blue-600 transition-colors">
               Direct Input
             </Link>
+            <Link href="/products" className="text-gray-600 hover:text-blue-600 transition-colors">
+              Product manage
+            </Link>
+            <Link href="/desciption" className="text-gray-600 hover:text-blue-600 transition-colors">
+            desciption manage
+            </Link>
           </nav>
           
           <div className="mt-4 md:mt-0 text-sm text-gray-500">
