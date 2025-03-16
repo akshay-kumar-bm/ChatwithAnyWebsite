@@ -616,7 +616,161 @@ def update_product():
         return jsonify({'error': str(e)}), 500
     
 
-# New API for viewing all description documents
+
+# API for updating, adding, or removing description documents
+# @app.route('/manage-description', methods=['POST'])
+# def manage_description():
+#     try:
+#         data = request.get_json()
+#         action = data.get('action')
+        
+#         if not action:
+#             return jsonify({'error': 'Action is required (add, update, or remove)'}), 400
+            
+#         if action not in ['add', 'update', 'remove']:
+#             return jsonify({'error': 'Invalid action. Must be add, update, or remove'}), 400
+        
+#         # Load existing vector store
+#         try:
+#             desc_vectorstore = FAISS.load_local(
+#                 "vectors/description_index", 
+#                 embeddings,
+#                 allow_dangerous_deserialization=True
+#             )
+#         except Exception:
+#             # If loading fails, initialize new vector store
+#             empty_doc = Document(
+#                 page_content="Initialization document",
+#                 metadata={"type": "init"}
+#             )
+#             desc_vectorstore = FAISS.from_documents(
+#                 documents=[empty_doc],
+#                 embedding=embeddings
+#             )
+        
+#         if action == 'add':
+#             # Add new description document
+#             text = data.get('text')
+#             title = data.get('title', 'Untitled')
+#             source = data.get('source', 'direct_input')
+            
+#             if not text or len(text.strip()) < 50:
+#                 return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
+            
+#             # Create a unique ID for the document
+#             doc_id = data.get('doc_id', str(time.time()))
+            
+#             # Create a Document from the text
+#             doc = Document(
+#                 page_content=text,
+#                 metadata={
+#                     "type": "description", 
+#                     "source": source,
+#                     "title": title,
+#                     "doc_id": doc_id,
+#                     "created_at": time.time()
+#                 }
+#             )
+            
+#             # Add document to vector store
+#             desc_vectorstore.add_documents([doc])
+#             desc_vectorstore.save_local("vectors/description_index")
+            
+#             return jsonify({
+#                 'message': 'Description document added successfully',
+#                 'doc_id': doc_id
+#             })
+            
+#         elif action == 'update':
+#             # Update existing description document
+#             doc_id = data.get('doc_id')
+#             text = data.get('text')
+#             title = data.get('title')
+            
+#             if not doc_id:
+#                 return jsonify({'error': 'Document ID is required for updates'}), 400
+                
+#             if not text or len(text.strip()) < 50:
+#                 return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
+            
+#             # First, remove the existing document
+#             docstore = desc_vectorstore.docstore
+#             old_doc = None
+#             for curr_id, doc in docstore._dict.items():
+#                 if doc.metadata.get("doc_id") == doc_id:
+#                     old_doc = doc
+#                     break
+            
+#             if not old_doc:
+#                 return jsonify({'error': f'Document with ID {doc_id} not found'}), 404
+            
+#             # Create a new document with updated content
+#             new_doc = Document(
+#                 page_content=text,
+#                 metadata={
+#                     **old_doc.metadata,  # Keep original metadata
+#                     "title": title if title else old_doc.metadata.get("title", "Untitled"),
+#                     "updated_at": time.time()
+#                 }
+#             )
+            
+#             # Create a new vector store excluding the old document
+#             new_docs = []
+#             for curr_id, doc in docstore._dict.items():
+#                 if doc.metadata.get("doc_id") != doc_id:
+#                     new_docs.append(doc)
+            
+#             # Add the new document
+#             new_docs.append(new_doc)
+            
+#             # Create a new vector store and save it
+#             new_vectorstore = FAISS.from_documents(
+#                 documents=new_docs,
+#                 embedding=embeddings
+#             )
+#             new_vectorstore.save_local("vectors/description_index")
+            
+#             return jsonify({
+#                 'message': f'Document {doc_id} updated successfully'
+#             })
+            
+#         elif action == 'remove':
+#             # Remove a description document
+#             doc_id = data.get('doc_id')
+            
+#             if not doc_id:
+#                 return jsonify({'error': 'Document ID is required for removal'}), 400
+            
+#             # Find the document to remove
+#             docstore = desc_vectorstore.docstore
+#             found = False
+            
+#             # Create a new list of documents excluding the one to remove
+#             new_docs = []
+#             for curr_id, doc in docstore._dict.items():
+#                 if doc.metadata.get("doc_id") == doc_id:
+#                     found = True
+#                     continue
+#                 new_docs.append(doc)
+            
+#             if not found:
+#                 return jsonify({'error': f'Document with ID {doc_id} not found'}), 404
+            
+#             # Create a new vector store and save it
+#             new_vectorstore = FAISS.from_documents(
+#                 documents=new_docs,
+#                 embedding=embeddings
+#             )
+#             new_vectorstore.save_local("vectors/description_index")
+            
+#             return jsonify({
+#                 'message': f'Document {doc_id} removed successfully'
+#             })
+    
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+    
+    # New API for viewing all description documents
 @app.route('/view-all-descriptions', methods=['GET'])
 def view_all_descriptions():
     try:
@@ -656,18 +810,21 @@ def view_all_descriptions():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# API for updating, adding, or removing description documents
-@app.route('/manage-description', methods=['POST'])
-def manage_description():
+
+# API for adding a description document
+@app.route('/add-description', methods=['POST'])
+def add_description():
     try:
         data = request.get_json()
-        action = data.get('action')
+        text = data.get('text')
+        title = data.get('title', 'Untitled')
+        source = data.get('source', 'direct_input')
         
-        if not action:
-            return jsonify({'error': 'Action is required (add, update, or remove)'}), 400
-            
-        if action not in ['add', 'update', 'remove']:
-            return jsonify({'error': 'Invalid action. Must be add, update, or remove'}), 400
+        if not text or len(text.strip()) < 50:
+            return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
+        
+        # Create a unique ID for the document
+        doc_id = data.get('doc_id', str(time.time()))
         
         # Load existing vector store
         try:
@@ -687,129 +844,77 @@ def manage_description():
                 embedding=embeddings
             )
         
-        if action == 'add':
-            # Add new description document
-            text = data.get('text')
-            title = data.get('title', 'Untitled')
-            source = data.get('source', 'direct_input')
-            
-            if not text or len(text.strip()) < 50:
-                return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
-            
-            # Create a unique ID for the document
-            doc_id = data.get('doc_id', str(time.time()))
-            
-            # Create a Document from the text
-            doc = Document(
-                page_content=text,
-                metadata={
-                    "type": "description", 
-                    "source": source,
-                    "title": title,
-                    "doc_id": doc_id,
-                    "created_at": time.time()
-                }
-            )
-            
-            # Add document to vector store
-            desc_vectorstore.add_documents([doc])
-            desc_vectorstore.save_local("vectors/description_index")
-            
-            return jsonify({
-                'message': 'Description document added successfully',
-                'doc_id': doc_id
-            })
-            
-        elif action == 'update':
-            # Update existing description document
-            doc_id = data.get('doc_id')
-            text = data.get('text')
-            title = data.get('title')
-            
-            if not doc_id:
-                return jsonify({'error': 'Document ID is required for updates'}), 400
-                
-            if not text or len(text.strip()) < 50:
-                return jsonify({'error': 'Text content is required and must be at least 50 characters'}), 400
-            
-            # First, remove the existing document
-            docstore = desc_vectorstore.docstore
-            old_doc = None
-            for curr_id, doc in docstore._dict.items():
-                if doc.metadata.get("doc_id") == doc_id:
-                    old_doc = doc
-                    break
-            
-            if not old_doc:
-                return jsonify({'error': f'Document with ID {doc_id} not found'}), 404
-            
-            # Create a new document with updated content
-            new_doc = Document(
-                page_content=text,
-                metadata={
-                    **old_doc.metadata,  # Keep original metadata
-                    "title": title if title else old_doc.metadata.get("title", "Untitled"),
-                    "updated_at": time.time()
-                }
-            )
-            
-            # Create a new vector store excluding the old document
-            new_docs = []
-            for curr_id, doc in docstore._dict.items():
-                if doc.metadata.get("doc_id") != doc_id:
-                    new_docs.append(doc)
-            
-            # Add the new document
-            new_docs.append(new_doc)
-            
-            # Create a new vector store and save it
-            new_vectorstore = FAISS.from_documents(
-                documents=new_docs,
-                embedding=embeddings
-            )
-            new_vectorstore.save_local("vectors/description_index")
-            
-            return jsonify({
-                'message': f'Document {doc_id} updated successfully'
-            })
-            
-        elif action == 'remove':
-            # Remove a description document
-            doc_id = data.get('doc_id')
-            
-            if not doc_id:
-                return jsonify({'error': 'Document ID is required for removal'}), 400
-            
-            # Find the document to remove
-            docstore = desc_vectorstore.docstore
-            found = False
-            
-            # Create a new list of documents excluding the one to remove
-            new_docs = []
-            for curr_id, doc in docstore._dict.items():
-                if doc.metadata.get("doc_id") == doc_id:
-                    found = True
-                    continue
-                new_docs.append(doc)
-            
-            if not found:
-                return jsonify({'error': f'Document with ID {doc_id} not found'}), 404
-            
-            # Create a new vector store and save it
-            new_vectorstore = FAISS.from_documents(
-                documents=new_docs,
-                embedding=embeddings
-            )
-            new_vectorstore.save_local("vectors/description_index")
-            
-            return jsonify({
-                'message': f'Document {doc_id} removed successfully'
-            })
-    
+        # Create a Document from the text
+        doc = Document(
+            page_content=text,
+            metadata={
+                "type": "description", 
+                "source": source,
+                "title": title,
+                "doc_id": doc_id,
+                "created_at": time.time()
+            }
+        )
+        
+        # Add document to vector store
+        desc_vectorstore.add_documents([doc])
+        desc_vectorstore.save_local("vectors/description_index")
+        
+        return jsonify({
+            'message': 'Description document added successfully',
+            'doc_id': doc_id
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
 
+
+# API for removing a description document
+@app.route('/remove-description', methods=['POST'])
+def remove_description():
+    try:
+        data = request.get_json()
+        doc_id = data.get('doc_id')
+        
+        if not doc_id:
+            return jsonify({'error': 'Document ID is required for removal'}), 400
+        
+        # Load existing vector store
+        try:
+            desc_vectorstore = FAISS.load_local(
+                "vectors/description_index", 
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
+        except Exception:
+            return jsonify({'error': 'Vector store not found'}), 404
+        
+        # Find the document to remove
+        docstore = desc_vectorstore.docstore
+        found = False
+        
+        # Create a new list of documents excluding the one to remove
+        new_docs = []
+        for curr_id, doc in docstore._dict.items():
+            if doc.metadata.get("doc_id") == doc_id:
+                found = True
+                continue
+            new_docs.append(doc)
+        
+        if not found:
+            return jsonify({'error': f'Document with ID {doc_id} not found'}), 404
+        
+        # Create a new vector store and save it
+        new_vectorstore = FAISS.from_documents(
+            documents=new_docs,
+            embedding=embeddings
+        )
+        new_vectorstore.save_local("vectors/description_index")
+        
+        return jsonify({
+            'message': f'Document {doc_id} removed successfully'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     
 # Update the app initialization to ensure vectors directory exists
 # @app.before_first_request
