@@ -34,7 +34,7 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             {[
-              { path: '/', label: 'Home' },
+              { path: '/admin', label: 'Home' },
               // { path: '/url-processor', label: 'Website Analysis' },
               { path: '/chatbot', label: 'AI Chat Support' },
               // { path: '/products', label: 'Product Management' },
