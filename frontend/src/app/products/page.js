@@ -85,7 +85,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (productId, productName) => {
-    if (!window.confirm(`Are you sure you want to delete "₹{productName}"?`)) {
+    if (!window.confirm(`Are you sure you want to delete "${productName}"?`)) {
       return;
     }
 
@@ -99,7 +99,7 @@ export default function ProductsPage() {
       const result = await response.json();
       
       if (response.ok) {
-        setStatus({ success: `Successfully deleted "₹{productName}"`, error: '' });
+        setStatus({ success: `Successfully deleted "${productName}"`, error: '' });
         // Refresh the products list
         fetchProducts();
       } else {
