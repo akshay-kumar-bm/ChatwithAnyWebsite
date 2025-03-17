@@ -11,8 +11,10 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, AnyUrl
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from selenium.webdriver.chrome.service import Service
+from selenium import webdriver
 
-
+from webdriver_manager.chrome import ChromeDriverManager
 from langchain_community.vectorstores import FAISS  
 from langchain_community.document_loaders import UnstructuredURLLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -59,6 +61,9 @@ class SelectRetriverRatio(BaseModel):
 
 # Utility function for URL extraction
 def extract_nav_urls(homepage_url: str) -> List[str]:
+
+    service = Service(ChromeDriverManager().install())
+
     chrome_options = Options()
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--disable-gpu')
@@ -71,7 +76,7 @@ def extract_nav_urls(homepage_url: str) -> List[str]:
     driver = None
     
     try:
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(options=chrome_options,service=service)
         driver.set_page_load_timeout(20)
         driver.get(homepage_url)
         nav_urls.add(homepage_url)
@@ -190,7 +195,7 @@ def process_product_urls():
         prod_loader = UnstructuredURLLoader(urls=urls)
         prod_data = prod_loader.load()
         
-        splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=0)
         final_prod_data = splitter.split_documents(prod_data)
         
         product_info = []
@@ -574,46 +579,46 @@ def extract_urls():
 
 
 
-@app.route('/update-product', methods=['POST'])
-def update_product():
-    try:
-        data = request.get_json()
-        product = ProductService(**data)
+# @app.route('/update-product', methods=['POST'])
+# def update_product():
+#     try:
+#         data = request.get_json()
+#         product = ProductService(**data)
         
-        # Convert product to document
-        doc = Document(
-            page_content=str(dict(product)),
-            metadata={"type": "product"}
-        )
+#         # Convert product to document
+#         doc = Document(
+#             page_content=str(dict(product)),
+#             metadata={"type": "product"}
+#         )
         
-        try:
-            # Try to load existing vector store
-            product_vectorstore = FAISS.load_local(
-                "vectors/product_info_index", 
-                embeddings,
-                allow_dangerous_deserialization=True
-            )
-        except Exception:
-            # If loading fails, initialize new vector store
-            empty_doc = Document(
-                page_content="Initialization document",
-                metadata={"type": "init"}
-            )
-            product_vectorstore = FAISS.from_documents(
-                documents=[empty_doc],
-                embedding=embeddings
-            )
+#         try:
+#             # Try to load existing vector store
+#             product_vectorstore = FAISS.load_local(
+#                 "vectors/product_info_index", 
+#                 embeddings,
+#                 allow_dangerous_deserialization=True
+#             )
+#         except Exception:
+#             # If loading fails, initialize new vector store
+#             empty_doc = Document(
+#                 page_content="Initialization document",
+#                 metadata={"type": "init"}
+#             )
+#             product_vectorstore = FAISS.from_documents(
+#                 documents=[empty_doc],
+#                 embedding=embeddings
+#             )
         
-        # Add new document to vector store
-        product_vectorstore.add_documents([doc])
-        product_vectorstore.save_local("vectors/product_info_index")
+#         # Add new document to vector store
+#         product_vectorstore.add_documents([doc])
+#         product_vectorstore.save_local("vectors/product_info_index")
         
-        return jsonify({
-            'message': 'Product updated successfully',
-            'product': dict(product)
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+#         return jsonify({
+#             'message': 'Product updated successfully',
+#             'product': dict(product)
+#         })
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
     
 
 
@@ -965,7 +970,7 @@ def chatbot():
         prompt_template = ChatPromptTemplate.from_messages([
             ("system", "Act as Customer Support Manager"),
             ("user", "Your task is to respond to the following customer query: {query}\n"
-                    "Provide the most relevant information based on the query and keep the message on point.\n"
+                    "Provide the most relevant information based on the query and keep the message on point short and well formated.\n"
                     "You have access to the following documents: {documents}")
         ])
         

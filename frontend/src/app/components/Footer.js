@@ -25,7 +25,7 @@ export default function Footer() {
               Product manage
             </Link>
             <Link href="/desciption" className="text-gray-600 hover:text-blue-600 transition-colors">
-            desciption manage
+            Description manager
             </Link>
           </nav>
           

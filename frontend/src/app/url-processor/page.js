@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
+import Admin from '../components/Admin_pannel';
 
 // URL Item component that can be dragged
 const DraggableUrlItem = ({ url, index, type, moveUrl, onDelete }) => {
@@ -15,6 +16,7 @@ const DraggableUrlItem = ({ url, index, type, moveUrl, onDelete }) => {
   })
 
   return (
+
     <li
       ref={drag}
       className={`flex items-center p-3 mb-2 rounded-lg cursor-move transition-all ${
@@ -281,7 +283,7 @@ export default function UrlProcessorPage() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <Admin />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-8">

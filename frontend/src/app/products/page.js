@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
+import Admin from '../components/Admin_pannel';
 
 export default function ProductsPage() {
   const [product, setProduct] = useState({
@@ -111,7 +112,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Admin />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
