@@ -35,9 +35,11 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-1">
             {[
               { path: '/admin', label: 'Home' },
-              // { path: '/url-processor', label: 'Website Analysis' },
+              { path: '/url-processor', label: 'Website Analysis' },
               { path: '/chatbot', label: 'AI Chat Support' },
-              // { path: '/products', label: 'Product Management' },
+              { path: '/text-processor', label: 'Direct Input' },
+              { path: '/products', label: 'Product Management' },
+              { path: '/desciption', label: 'Description Manager' },
             ].map((link) => (
               <Link
                 key={link.path}
@@ -90,9 +92,11 @@ export default function Header() {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {[
               { path: '/', label: 'Home' },
-              // { path: '/url-processor', label: 'Website Analysis' },
+              { path: '/url-processor', label: 'Website Analysis' },
               { path: '/chatbot', label: 'AI Chat Support' },
-              // { path: '/products', label: 'Product Management' },
+              { path: '/text-processor', label: 'Direct Input' },
+              { path: '/products', label: 'Product Management' },
+              { path: '/desciption', label: 'Description Manager' },
             ].map((link) => (
               <Link
                 key={link.path}

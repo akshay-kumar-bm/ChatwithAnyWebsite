@@ -1,5 +1,4 @@
 "use client"
-// pages/index.js
 
 import React, { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
@@ -30,8 +29,8 @@ const ChatbotWidget = () => {
         }`}
         style={{
           width: 'calc(100% - 2rem)',
-          maxWidth: '400px',
-          height: '600px',
+          maxWidth: '450px',
+          height: '650px',
           maxHeight: 'calc(100vh - 6rem)'
         }}
       >
@@ -56,7 +55,6 @@ const ChatbotWidget = () => {
     </>
   );
 };
-
 
 
 // import React from 'react';
