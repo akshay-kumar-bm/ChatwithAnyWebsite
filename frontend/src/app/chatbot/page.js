@@ -1,10 +1,5 @@
 'use client';
-<<<<<<< HEAD
-import { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-=======
 import { useState, useRef, useEffect } from 'react';
->>>>>>> 9bdf20e0944b3a8470c769772b0809e8b983122e
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ReactMarkdown from 'react-markdown';
@@ -34,11 +29,7 @@ export default function ChatbotPage() {
     
     // Immediately update UI with user message and clear input
     setMessages(prev => [...prev, userMessage]);
-<<<<<<< HEAD
-    setQuery(''); // Clear the input field immediately
-=======
     setQuery('');
->>>>>>> 9bdf20e0944b3a8470c769772b0809e8b983122e
     setLoading(true);
 
     try {
@@ -157,12 +148,6 @@ export default function ChatbotPage() {
                   transition={{ duration: 0.3 }}
                   className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} mb-4 sm:mb-6`}
                 >
-<<<<<<< HEAD
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              </div>
-            ))}
-=======
                   {msg.type !== 'user' && (
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center mr-2 sm:mr-3 mt-1 shadow-md flex-shrink-0">
                       {msg.type === 'error' ? (
@@ -197,7 +182,6 @@ export default function ChatbotPage() {
                 </motion.div>
               ))}
             </AnimatePresence>
->>>>>>> 9bdf20e0944b3a8470c769772b0809e8b983122e
             
             {loading && (
               <div className="flex justify-start mb-4 sm:mb-6">

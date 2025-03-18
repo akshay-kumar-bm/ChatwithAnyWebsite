@@ -1,7 +1,513 @@
 "use client"
 
+
+"use client"
+
+
+import { 
+  ShoppingCart, 
+  Trash2, 
+  CreditCard,
+  User,
+
+  Mail,
+  Plus,
+  Minus,
+  Info,
+
+} from 'lucide-react';
+
+// Create the OrderManagementSystem component
+const OrderManagementSystem = () => {
+  // State for cart, customer info and UI control
+  const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState('menu'); // menu, details, payment
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    tableNumber: '',
+    specialInstructions: ''
+  });
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
+  
+  // State for restaurant menu items - using the existing restaurant data
+  const [menuItems] = useState(restaurantData.foods);
+  
+  // Calculate cart total
+  const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  
+  // Add item to cart
+  const addToCart = (item) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
+      
+      if (existingItem) {
+        // If item already exists, increase quantity
+        return prevCart.map(cartItem => 
+          cartItem.id === item.id 
+            ? { ...cartItem, quantity: cartItem.quantity + 1 } 
+            : cartItem
+        );
+      } else {
+        // Otherwise add new item with quantity 1
+        return [...prevCart, { ...item, quantity: 1 }];
+      }
+    });
+  };
+  
+  // Remove item from cart
+  const removeFromCart = (itemId) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+  };
+  
+  // Update item quantity
+  const updateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    
+    setCart(prevCart => 
+      prevCart.map(item => 
+        item.id === itemId 
+          ? { ...item, quantity: newQuantity } 
+          : item
+      )
+    );
+  };
+  
+  // Handle customer info changes
+  const handleInfoChange = (e) => {
+    const { name, value } = e.target;
+    setCustomerInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Proceed to next step
+  const proceedToDetails = () => {
+    if (cart.length === 0) {
+      alert('Please add items to your order before continuing.');
+      return;
+    }
+    setCurrentStep('details');
+  };
+  
+  const proceedToPayment = () => {
+    // Basic validation
+    if (!customerInfo.name || !customerInfo.phone || !customerInfo.tableNumber) {
+      alert('Please fill in all required fields before continuing.');
+      return;
+    }
+    setCurrentStep('payment');
+  };
+  
+  // Place order function
+  const placeOrder = () => {
+    // Generate random order number
+    const newOrderNumber = 'BS' + Math.floor(1000 + Math.random() * 9000);
+    setOrderNumber(newOrderNumber);
+    
+    // In a real application, you'd send this data to your backend
+    const orderData = {
+      orderNumber: newOrderNumber,
+      customer: customerInfo,
+      items: cart,
+      total: cartTotal,
+      orderTime: new Date().toISOString(),
+      status: 'Preparing'
+    };
+    
+    console.log('Order placed:', orderData);
+    
+    // Show success state
+    setOrderPlaced(true);
+    
+    // Reset cart
+    setCart([]);
+  };
+  
+  // Reset order flow
+  const startNewOrder = () => {
+    setCurrentStep('menu');
+    setOrderPlaced(false);
+    setCustomerInfo({
+      name: '',
+      phone: '',
+      email: '',
+      tableNumber: '',
+      specialInstructions: ''
+    });
+  };
+  
+  // Order summary component
+  const OrderSummary = () => (
+    <div className="bg-orange-50 p-4 rounded-lg">
+      <h3 className="font-semibold text-lg mb-2">Order Summary</h3>
+      <div className="space-y-2">
+        {cart.map(item => (
+          <div key={item.id} className="flex justify-between">
+            <span>{item.quantity} × {item.name}</span>
+            <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="border-t border-orange-200 mt-3 pt-3 flex justify-between font-semibold">
+        <span>Total</span>
+        <span>₹{cartTotal.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+  
+  return (
+    <>
+      {/* Cart toggle button */}
+      <button
+        onClick={() => setIsCartOpen(true)}
+        className="fixed bottom-6 left-6 z-40 bg-orange-600 text-white p-3 rounded-full shadow-lg hover:bg-orange-700 transition-all duration-300"
+        aria-label="Open cart"
+      >
+        <div className="relative">
+          <ShoppingCart className="w-6 h-6" />
+          {cart.length > 0 && (
+            <div className="absolute -top-2 -right-2 bg-white text-orange-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+              {cart.reduce((total, item) => total + item.quantity, 0)}
+            </div>
+          )}
+        </div>
+      </button>
+      
+      {/* Cart/Order sidebar */}
+      <div 
+        className={`fixed top-0 right-0 w-full md:w-96 h-full bg-white shadow-xl z-50 transform transition-transform duration-300 ${
+          isCartOpen ? 'translate-x-0' : 'translate-x-full'
+        } flex flex-col`}
+      >
+        {/* Header */}
+        <div className="bg-orange-600 text-white p-4 flex justify-between items-center">
+          <h2 className="text-lg font-semibold">
+            {currentStep === 'menu' && 'Your Order'}
+            {currentStep === 'details' && 'Customer Details'}
+            {currentStep === 'payment' && 'Payment'}
+            {orderPlaced && 'Order Confirmed'}
+          </h2>
+          <button 
+            onClick={() => setIsCartOpen(false)}
+            className="text-white hover:text-gray-200"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {orderPlaced ? (
+            // Order confirmation
+            <div className="text-center py-8">
+              <div className="bg-green-100 text-green-800 p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">Order Confirmed!</h3>
+              <p className="text-gray-600 mb-4">Your order #{orderNumber} has been placed successfully.</p>
+              <p className="mb-6">Our staff will start preparing your food right away.</p>
+              <OrderSummary />
+              <button
+                onClick={startNewOrder}
+                className="mt-6 bg-orange-600 text-white w-full py-3 rounded-lg hover:bg-orange-700"
+              >
+                Place New Order
+              </button>
+            </div>
+          ) : currentStep === 'menu' ? (
+            // Cart items
+            cart.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400 mb-4">
+                  <ShoppingCart className="h-16 w-16 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
+                <p className="text-gray-500">Add items from the menu to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cart.map(item => (
+                  <div key={item.id} className="flex border-b pb-4">
+                    <div className="flex-grow">
+                      <h4 className="font-medium">{item.name}</h4>
+                      <p className="text-gray-500 text-sm">{item.price} × {item.quantity}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <button 
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="p-1 text-gray-500 hover:text-orange-600"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="px-2">{item.quantity}</span>
+                      <button 
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="p-1 text-gray-500 hover:text-orange-600"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => removeFromCart(item.id)}
+                        className="ml-3 text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <div className="text-right text-lg font-semibold">
+                  Total: ₹{cartTotal.toFixed(2)}
+                </div>
+              </div>
+            )
+          ) : currentStep === 'details' ? (
+            // Customer details form
+            <div className="space-y-4">
+              <OrderSummary />
+              <div className="mt-6">
+                <h3 className="font-semibold text-lg mb-3">Customer Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name *</label>
+                    <div className="mt-1 relative">
+                      <User className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={customerInfo.name}
+                        onChange={handleInfoChange}
+                        className="pl-10 py-2 px-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number *</label>
+                    <div className="mt-1 relative">
+                      <Phone className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={customerInfo.phone}
+                        onChange={handleInfoChange}
+                        className="pl-10 py-2 px-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                    <div className="mt-1 relative">
+                      <Mail className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={customerInfo.email}
+                        onChange={handleInfoChange}
+                        className="pl-10 py-2 px-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="tableNumber" className="block text-sm font-medium text-gray-700">Table Number *</label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        id="tableNumber"
+                        name="tableNumber"
+                        value={customerInfo.tableNumber}
+                        onChange={handleInfoChange}
+                        className="py-2 px-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="specialInstructions" className="block text-sm font-medium text-gray-700">Special Instructions</label>
+                    <div className="mt-1">
+                      <textarea
+                        id="specialInstructions"
+                        name="specialInstructions"
+                        rows="3"
+                        value={customerInfo.specialInstructions}
+                        onChange={handleInfoChange}
+                        className="py-2 px-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                        placeholder="Any allergies or special requests?"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Payment options
+            <div className="space-y-6">
+              <OrderSummary />
+              
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-lg mb-3">Customer Info</h3>
+                <div className="text-gray-700">
+                  <p><span className="font-medium">Name:</span> {customerInfo.name}</p>
+                  <p><span className="font-medium">Phone:</span> {customerInfo.phone}</p>
+                  <p><span className="font-medium">Table:</span> {customerInfo.tableNumber}</p>
+                  {customerInfo.email && <p><span className="font-medium">Email:</span> {customerInfo.email}</p>}
+                  {customerInfo.specialInstructions && (
+                    <div className="mt-2">
+                      <p className="font-medium">Special Instructions:</p>
+                      <p className="text-gray-600 text-sm">{customerInfo.specialInstructions}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-lg mb-3">Payment Method</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center p-3 border rounded-lg bg-gray-50">
+                    <input
+                      type="radio"
+                      id="payAtTable"
+                      name="paymentMethod"
+                      defaultChecked
+                      className="h-4 w-4 text-orange-600 focus:ring-orange-500"
+                    />
+                    <label htmlFor="payAtTable" className="ml-3 block text-gray-700">
+                      Pay at table
+                    </label>
+                  </div>
+                  <div className="flex items-center p-3 border rounded-lg">
+                    <input
+                      type="radio"
+                      id="payOnline"
+                      name="paymentMethod"
+                      className="h-4 w-4 text-orange-600 focus:ring-orange-500"
+                    />
+                    <label htmlFor="payOnline" className="ml-3 block text-gray-700">
+                      Online payment
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Footer with actions */}
+        {!orderPlaced && (
+          <div className="p-4 border-t">
+            {currentStep === 'menu' && cart.length > 0 && (
+              <button
+                onClick={proceedToDetails}
+                className="bg-orange-600 text-white w-full py-3 rounded-lg hover:bg-orange-700"
+              >
+                Continue to Details
+              </button>
+            )}
+            
+            {currentStep === 'details' && (
+              <div className="flex flex-col space-y-2">
+                <button
+                  onClick={proceedToPayment}
+                  className="bg-orange-600 text-white w-full py-3 rounded-lg hover:bg-orange-700"
+                >
+                  Continue to Payment
+                </button>
+                <button
+                  onClick={() => setCurrentStep('menu')}
+                  className="text-gray-600 w-full py-2 hover:text-orange-600"
+                >
+                  Back to Cart
+                </button>
+              </div>
+            )}
+            
+            {currentStep === 'payment' && (
+              <div className="flex flex-col space-y-2">
+                <button
+                  onClick={placeOrder}
+                  className="bg-orange-600 text-white w-full py-3 rounded-lg hover:bg-orange-700 flex items-center justify-center"
+                >
+                  <CreditCard className="mr-2 h-5 w-5" />
+                  Place Order (₹{cartTotal.toFixed(2)})
+                </button>
+                <button
+                  onClick={() => setCurrentStep('details')}
+                  className="text-gray-600 w-full py-2 hover:text-orange-600"
+                >
+                  Back to Details
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Menu Section with Add to Cart buttons */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Order Menu</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {menuItems.map((food) => (
+              <div key={food.id} className="bg-white rounded-lg overflow-hidden shadow-lg border border-gray-100">
+                <div className="relative">
+                  <img 
+                    src={food.image} 
+                    alt={food.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-0 right-0 bg-orange-600 text-white px-3 py-1 text-sm rounded-bl-lg">
+                    {food.category}
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{food.name}</h3>
+                  <p className="text-gray-600 mb-4">{food.description}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-orange-600 font-bold">₹{food.price}</p>
+                    <button 
+                      onClick={() => {
+                        addToCart(food);
+                        if (!isCartOpen) setIsCartOpen(true);
+                      }}
+                      className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-1" />
+                      Add to Order
+                    </button>
+                  </div>
+                  
+                  {/* Show if item is in cart */}
+                  {cart.find(item => item.id === food.id) && (
+                    <div className="mt-3 text-sm text-green-600 flex items-center">
+                      <Info className="w-4 h-4 mr-1" />
+                      {cart.find(item => item.id === food.id).quantity} in your order
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}; 
+
+
 import React, { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
+
 
 // Add this component to your existing code
 const ChatbotWidget = () => {
@@ -86,7 +592,7 @@ const restaurantData = {
       category: "Main Course"
     },
     {
-      id: 2,
+      id: 2,  
       name: "Biryani",
       description: "Fragrant rice dish with aromatic spices and tender meat",
       price: 449,
@@ -224,7 +730,9 @@ const restaurantData = {
   ]
 };
 
+// Update the default export to include both your original content and the new OrderManagementSystem
 export default function Home() {
+  // Original Home component code remains here...
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [expandedFaq, setExpandedFaq] = useState(null);
@@ -238,10 +746,10 @@ export default function Home() {
   const toggleFaq = (id) => {
     setExpandedFaq(expandedFaq === id ? null : id);
   };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
+      
       <nav className="bg-white shadow-lg fixed w-full z-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
@@ -318,52 +826,13 @@ export default function Home() {
       {/* Menu Categories */}
       <section id="menu" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Our Menu</h2>
+            
           
           {/* Category Tabs */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {categories.map(category => (
-              <button 
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm md:text-base transition-colors ${
-                  activeCategory === category 
-                    ? 'bg-orange-600 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-orange-100'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+          
           
           {/* Menu Items */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {filteredFoods.map((food) => (
-              <div key={food.id} className="bg-white rounded-lg overflow-hidden shadow-lg transform transition duration-300 hover:scale-105">
-                <div className="relative">
-                  <img 
-                    src={food.image} 
-                    alt={food.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-0 right-0 bg-orange-600 text-white px-3 py-1 text-sm rounded-bl-lg">
-                    {food.category}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{food.name}</h3>
-                  <p className="text-gray-600 min-h-[60px]">{food.description}</p>
-                  <div className="flex justify-between items-center mt-4">
-                    <p className="text-orange-600 font-bold">₹{food.price}</p>
-                    <button className="bg-orange-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-orange-700">
-                      Add to Order
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <OrderManagementSystem /> 
         </div>
       </section>
 

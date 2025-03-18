@@ -972,11 +972,7 @@ def chatbot():
         prompt_template = ChatPromptTemplate.from_messages([
             ("system", "Act as Customer Support Manager"),
             ("user", "Your task is to respond to the following customer query: {query}\n"
-<<<<<<< HEAD
-                    "Provide the most relevant information based on the query and keep the message on point with markdown formate.\n"
-=======
                     "Provide the most relevant information based on the query and keep the message on point short and well formated.\n"
->>>>>>> 9bdf20e0944b3a8470c769772b0809e8b983122e
                     "You have access to the following documents: {documents}")
         ])
         
