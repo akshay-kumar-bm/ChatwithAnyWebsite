@@ -4,7 +4,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import axios from "axios";
-import Admin from "../components/Admin_pannel";
+import Header from '../components/Header';
+
 
 export default function DescriptionPage() {
   // State management
@@ -120,7 +121,7 @@ export default function DescriptionPage() {
 
   return (
     <>
-    <Admin/>
+    <Header/>
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold mb-4 text-gray-800">
