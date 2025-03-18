@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import Header from '../components/Header';
 
 export default function ChatbotPage() {
@@ -13,6 +14,7 @@ export default function ChatbotPage() {
 
     const userMessage = { type: 'user', content: query };
     setMessages(prev => [...prev, userMessage]);
+    setQuery(''); // Clear the input field immediately
     setLoading(true);
 
     try {
@@ -25,7 +27,6 @@ export default function ChatbotPage() {
       const result = await res.json();
       const botMessage = { type: 'bot', content: result.response };
       setMessages(prev => [...prev, botMessage]);
-      setQuery('');
     } catch (err) {
       const errorMessage = { type: 'error', content: 'Sorry, there was an error. Please try again.' };
       setMessages(prev => [...prev, errorMessage]);
@@ -76,7 +77,7 @@ export default function ChatbotPage() {
                         : 'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  {msg.content}
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
               </div>
             ))}

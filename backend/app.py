@@ -75,6 +75,7 @@ def extract_nav_urls(homepage_url: str) -> List[str]:
         wait = WebDriverWait(driver, 10)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
         time.sleep(2)
+        nav_urls.add(homepage_url)
         
         nav_elements = driver.find_elements(By.CSS_SELECTOR, 
             'nav, header, [class*="nav"], [class*="menu"], [id*="nav"], [id*="menu"]')
@@ -88,6 +89,7 @@ def extract_nav_urls(homepage_url: str) -> List[str]:
                         nav_urls.add(urljoin(homepage_url, href))
                 except Exception:
                     continue
+                    
                     
         return list(nav_urls)
     except Exception as e:
@@ -189,7 +191,7 @@ def process_product_urls():
         final_prod_data = splitter.split_documents(prod_data)
         
         product_info = []
-        for docs in final_prod_data[:3]:
+        for docs in final_prod_data[:10]:
             product_info.append(prod_format_llm.invoke(docs.page_content))
             
         result = reduce(lambda x, y: List_product(products=x.products + y.products), product_info)
@@ -379,7 +381,7 @@ def chatbot():
         prompt_template = ChatPromptTemplate.from_messages([
             ("system", "Act as Customer Support Manager"),
             ("user", "Your task is to respond to the following customer query: {query}\n"
-                    "Provide the most relevant information based on the query and keep the message on point.\n"
+                    "Provide the most relevant information based on the query and keep the message on point with markdown formate.\n"
                     "You have access to the following documents: {documents}")
         ])
         
