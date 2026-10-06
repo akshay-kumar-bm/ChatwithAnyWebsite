@@ -1,102 +1,60 @@
 # Chat with Any Website
 
-## Overview
+**Point it at a website and get a customer-support chatbot: it scrapes the site, uses Gemini to classify pages, indexes them in FAISS and answers questions with retrieval-augmented generation.**
 
-Welcome to the Chat with Any Website project! This application is designed to help businesses automate staff tasks, save money, and improve efficiency by leveraging AI-powered features. The app allows you to extract and classify URLs, process description and product URLs, and manage products and descriptions. By using this app, businesses can streamline their operations and enhance productivity.
+## What it does
+
+A Flask backend plus Next.js frontend that turns a business website into a knowledge base for a support chatbot. The bundled frontend demo is themed as an Indian restaurant (product images such as biryani and masala dosa).
 
 ## Features
 
-### URL Extraction and Classification
+- **URL extraction** (`POST /extract-urls`): headless Selenium Chrome collects navigation URLs from a homepage
+- **LLM URL classification**: Gemini structured output splits URLs into description pages and product/service pages; editable via `/update-url-classification`
+- **Two FAISS vector stores** (`backend/vectors/description_index`, `product_info_index`) built from scraped pages or pasted text (`/process-desc-urls`, `/process-product-urls`, `/process-desc-text`, `/process-product-text`)
+- **Content management**: view/add/remove descriptions and products (`/view-all-*`, `/add-*`, `/remove-*`); products are normalised to a structured list by the LLM
+- **Adaptive retrieval** (`POST /chatbot`): an LLM-chosen ratio decides how many of 10 retrieved chunks come from description vs product stores, then Gemini answers as a "Customer Support Manager"
+- **Frontend pages** (Next.js): URL processor, text processor, admin, products, description, order placement, chatbot and an embeddable `chatbot_iframe`
+- Also a small Streamlit client under `backend/src/streamlit_app.py`
 
-- **Extract Navigation URLs**: Automatically extract navigation URLs from any website.
-- **Classify URLs**: Classify URLs into description URLs and product/service URLs.
+## Tech stack
 
-### Description Management
+Backend: Python, Flask, Flask-CORS, Selenium (+ webdriver-manager), LangChain Community, `langchain_google_genai` (Gemini LLM and embeddings), FAISS, Pydantic, python-dotenv.
+Frontend: Next.js 15, React 19, Tailwind, axios, framer-motion, react-markdown.
 
-- **Process Description URLs**: Process and store description URLs in a vector store for easy retrieval.
-- **Add Description Text**: Add description text directly and store it in the vector store.
-- **View All Descriptions**: Retrieve and view all stored descriptions.
-- **Remove Descriptions**: Remove descriptions by their document ID.
+## Architecture
 
-### Product Management
+```mermaid
+flowchart LR
+  UI[Next.js frontend] -->|REST, localhost:5000| API[Flask app.py]
+  API --> S[Selenium scraper]
+  API --> L[Gemini via LangChain]
+  API --> V[(FAISS: description + product indexes)]
+  L --> V
+```
 
-- **Process Product URLs**: Process and store product URLs in a vector store for easy retrieval.
-- **Add Product Text**: Add product information directly and store it in the vector store.
-- **View All Products**: Retrieve and view all stored products.
-- **Remove Products**: Remove products by their ID or name.
+## Structure
 
-### Chatbot
+```
+backend/  app.py, requirement.txt, src/{config,models,services}, vectors/, tests/, notebooks/
+frontend/ src/app/*, src/utils/api.js, public/images
+```
 
-- **Interactive Chat Interface**: Engage with a chatbot that provides context-aware responses based on processed website content.
-- **Retrieve Relevant Information**: Get the most relevant information based on user queries.
+## Run
 
-## Benefits
+```bash
+cd backend
+pip install -r requirement.txt      # webdriver-manager and faiss-cpu are imported but not listed; install them too
+# .env: GOOGLE_API_KEY=..., MODEL=<Gemini model name>
+python app.py                        # http://localhost:5000
 
-By using the Chat with Any Website app, businesses can:
+cd ../frontend
+npm install && npm run dev           # http://localhost:3000
+```
+Chrome must be installed for the scraper.
 
-- **Save Time**: Automate repetitive tasks and reduce manual effort.
-- **Save Money**: Minimize the need for additional staff by automating tasks.
-- **Improve Efficiency**: Streamline operations and enhance productivity.
-- **Enhance Customer Support**: Provide quick and accurate responses to customer queries through the chatbot.
+## Limitations
 
-## Examples and Use Cases
-
-### Example 1: Automating Product Management
-
-A business can use the app to automate the process of managing product information. By extracting product URLs from their website, the app can classify and store product details in a vector store. This allows the business to easily retrieve and update product information, saving time and effort.
-
-### Example 2: Enhancing Customer Support
-
-The chatbot feature can be used to enhance customer support by providing quick and accurate responses to customer queries. By processing description and product URLs, the app can retrieve relevant information and assist customers effectively.
-
-### Example 3: Streamlining Content Management
-
-Businesses can use the app to manage and organize their website content. By processing description URLs, the app can store and retrieve content efficiently, making it easier to update and maintain the website.
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.8 or higher
-- Flask
-- Selenium
-- Flask-CORS
-- Langchain Community
-- Langchain Google GenAI
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/akshaykumarbedre/ChatwithAnyWebsite.git
-   cd ChatwithAnyWebsite/backend
-   ```
-
-2. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Set up environment variables:
-   Create a `.env` file in the `backend` directory with the following variables:
-   ```
-   GOOGLE_API_KEY=your_google_api_key
-   MODEL=your_model_name
-   ```
-
-### Running the App
-
-1. Start the Flask backend server:
-   ```bash
-   python app.py
-   ```
-
-2. Access the app at `http://localhost:5000`.
-
-## Contributing
-
-We welcome contributions to the Chat with Any Website project! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+- API base URL is hard-coded to `http://localhost:5000`; no auth on admin endpoints
+- Prebuilt FAISS indexes are committed and loaded with `allow_dangerous_deserialization=True` (only trust your own index files)
+- Large `app.py` with commented-out legacy routes; minimal tests; requirements incomplete
+- "Order placement" is a UI page; no payment/backend ordering logic was verified
